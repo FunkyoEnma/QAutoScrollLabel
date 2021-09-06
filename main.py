@@ -3,7 +3,6 @@ import sys
 from time import sleep
 
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
-from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QScrollArea, QWidget, QLabel, QScrollBar, QHBoxLayout, QApplication
 
 
@@ -61,6 +60,7 @@ class ScrollLabel(QScrollArea):
         return self.__label.text()
 
 
+# noinspection PyUnresolvedReferences
 class QAutoScrollLabel(ScrollLabel):
 
     # noinspection PyShadowingNames
@@ -186,7 +186,7 @@ class QAutoScrollLabel(ScrollLabel):
                   f"Max: {self.scrollbar.maximum()}Px",
                   f"Vel: {self.__worker.velocity}Px/s",
                   f"Time between ticks: {self.__worker.timeBetweenTicks}S",
-                  f"Ticks Per Second: {1/self.__worker.timeBetweenTicks} T/s")
+                  f"Ticks Per Second: {1 / self.__worker.timeBetweenTicks} T/s")
 
     def debug(self, debug: bool = None) -> None:
         """
