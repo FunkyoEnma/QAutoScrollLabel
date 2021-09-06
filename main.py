@@ -4,17 +4,24 @@ from time import sleep
 
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt6.QtGui import QCloseEvent
-from PyQt6.QtWidgets import QScrollArea, QWidget, QVBoxLayout, QLabel, QScrollBar, QHBoxLayout, QApplication
+from PyQt6.QtWidgets import QScrollArea, QWidget, QLabel, QScrollBar, QHBoxLayout, QApplication
 
 
 class ScrollLabel(QScrollArea):
+    __text = "Please use the funtion setText to change this text"
 
-    def __init__(self, a0: str, parent: QWidget = None):
-        """This is the widget where the text is going to be placed, if you wantd the AutoScroll Label use
-        QAutoScrollLabel instead"""
+    def __init__(self, a0: str = __text, parent: QWidget = None):
+        """This is the widget where the text will be placed, if you want the Label scrolls automatically use
+        QAutoScrollLabel instead.
+
+        If you still want to use this class instead of QAutoScrollLabel, please note that this class will NOT
+        scroll automatically
+
+        :arg a0: String to show in Label
+        """
         QScrollArea.__init__(self, parent)  # Initialize QScrollArea
 
-        self.setWidgetResizable(True) # making widget resizable
+        self.setWidgetResizable(True)  # making widget resizable
 
         # making qwidget object to content the QLabel
         content = QWidget(self)
@@ -29,93 +36,163 @@ class ScrollLabel(QScrollArea):
         # adding label to the layout
         self.__lay.addWidget(self.__label)
 
+        # create QScrollBar object to scroll into the label with text
         self.scrollbar = QScrollBar()
-
         self.setHorizontalScrollBar(self.scrollbar)
 
         self.setText(a0)
 
     def setText(self, a0: str):
+        """
+        Set a new text in the label
+        """
 
         self.__label.setText(a0)
 
         self.__label.adjustSize()
         self.__lay.setContentsMargins(0, 0, 0, 0)
-        print(self.__label.height())
         self.resize(200, self.__label.height() + 4)
+
+    # noinspection PyMethodMayBeStatic
+    def text(self) -> str:
+        """
+        Get the current text in the Label
+        """
+        return self.__label.text()
 
 
 class QAutoScrollLabel(ScrollLabel):
 
     # noinspection PyShadowingNames
-    def __init__(self, parent: QWidget=None):
+    def __init__(self, debug: bool = False, parent: QWidget = None):
+        """
+        This Class creates a Widget that scrolls automatically if the text in the Label that the ScrollLabel class has
+        inside it is wider than the Widget itself.
 
-        text = "Este label se mueve automaticamente si es mas grande el texto"
+        :param debug: True if you want to enable debug Funtions [False by default]
+        :param parent: Parent widget
+        """
 
-        super(QAutoScrollLabel, self).__init__(text, parent)
+        # Widget text by default
+        __text = "The text in this widget moves automatically if the text is larger than the Widget itself."
 
+        super(QAutoScrollLabel, self).__init__(__text, parent)
+
+        # Hide ScrollBars
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        self.__debug = False
+        # Save parameter debug in a class variable
+        self.__debug = debug
 
-    class Worker(QObject):
+    class __Scroller(QObject):
         finished = pyqtSignal()
         progress = pyqtSignal(int)
 
         def __init__(self, scroll: QScrollBar):
+            """
+            Worker type QObject to execute the AutoScroll in the Widget
+
+            :param scroll: Scroll bar to auto-scroll
+            """
+
             QObject.__init__(self)
             self.__scrollbar = scroll
             self.__orient = 1
-            self.vel = 10
+            self.__vel = 10
+            self.__csleep = 0.7
 
         def run(self):
-            """Long-running task."""
-            while True:
+            """This is the function that will perform the automatic scrolling of the text in the Widget.
+            This connects to the "started" function of a QThread Object."""
+
+            while True:  # This funtion will be alive until the program close
 
                 if self.__scrollbar.maximum() > 0:
-                    if self.__orient == 1:
-                        if self.__scrollbar.maximum() - self.__scrollbar.value() < self.vel:
+                    if self.__orient == 1:  # Move to the right
+                        if self.__scrollbar.maximum() - self.__scrollbar.value() < self.__vel:
                             self.__scrollbar.setValue(self.__scrollbar.maximum())
-                        self.__scrollbar.setValue(self.__scrollbar.value() + self.vel)
+                        self.__scrollbar.setValue(self.__scrollbar.value() + self.__vel)
 
-                    elif self.__orient == -1:
-                        if self.__scrollbar.value() < self.vel:
+                    elif self.__orient == -1:  # Move to the left
+                        if self.__scrollbar.value() < self.__vel:
                             self.__scrollbar.setValue(self.__scrollbar.minimum())
-                        self.__scrollbar.setValue(self.__scrollbar.value() - self.vel)
+                        self.__scrollbar.setValue(self.__scrollbar.value() - self.__vel)
 
-                    print(self.__scrollbar.maximum(), self.__scrollbar.value())
-
-                    if self.__scrollbar.value() == self.__scrollbar.maximum():
+                    # Change scrolling orientation an keep 1 second in that point
+                    if self.__scrollbar.value() == self.__scrollbar.maximum():  # Change orientaton from Right to Left
                         self.__orient = -1
                         sleep(1)
 
-                    elif self.__scrollbar.value() == self.__scrollbar.minimum():
+                    elif self.__scrollbar.value() == self.__scrollbar.minimum():  # Change orientaton from Left to Right
                         self.__orient = 1
                         sleep(1)
+
+                    self.progress.emit(self.__orient)
 
                 else:
 
                     pass
 
-                sleep(0.7)
+                sleep(self.__csleep)
+
+        def setVelocity(self, a0: int):
+            """Set the velocity (Pixels Per Tick)"""
+            self.__vel = a0
+
+        def setTimeBetweenTicks(self, a0: float):
+            """Set the time in seconds (int o float) between Ticks"""
+            self.__csleep = a0
+
+        @property
+        def velocity(self):
+            return self.__vel
+
+        @property
+        def timeBetweenTicks(self):
+            return self.__csleep
+
+        @property
+        def orientation(self):
+            return self.__orient
 
     def show(self) -> None:
+        """Shows the widget and start the Auto-Scroll Thread"""
         QWidget.show(self)
-        # Step 2: Create a QThread object
-        self.thread = QThread()
-        # Step 3: Create a worker object
-        self.worker = self.Worker(self.scrollbar)
-        # Step 4: Move worker to the thread
-        self.worker.moveToThread(self.thread)
-        # Step 5: Connect signals and slots
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
 
-        self.thread.start()
+        # Configure QTread with the worker Scroller
+        self.__thread = QThread()
+        self.__worker = self.__Scroller(self.scrollbar)
+        self.__worker.moveToThread(self.__thread)
 
-    def debug(self, debug: bool = None):
+        # Connect Signals
+        self.__thread.started.connect(self.__worker.run)
+        self.__worker.finished.connect(self.__thread.quit)
+        self.__worker.finished.connect(self.__worker.deleteLater)
+        self.__thread.finished.connect(self.__thread.deleteLater)
+        self.__worker.progress.connect(self.__debugger)
+
+        # Connect Debugger Signal
+        self.__worker.progress.connect(self.__debugger)
+
+        # Start QTread
+        self.__thread.start()
+
+    def __debugger(self):
+        """Prints the debug Info"""
+        if self.__debug:
+            print("Orientation:", "RIGHT" if self.__worker.orientation == 1 else "LEFT",
+                  f"Pos: {self.scrollbar.value()}Px",
+                  f"Max: {self.scrollbar.maximum()}Px",
+                  f"Vel: {self.__worker.velocity}Px/s",
+                  f"Time between ticks: {self.__worker.timeBetweenTicks}S",
+                  f"Ticks Per Second: {1/self.__worker.timeBetweenTicks} T/s")
+
+    def debug(self, debug: bool = None) -> None:
+        """
+        Enable debbug info
+        :param debug: True or false to enable or disable the debugger, if None the current state will be inverted.
+        """
 
         if debug is None:
             if not self.__debug:
@@ -132,12 +209,9 @@ class QAutoScrollLabel(ScrollLabel):
 
             self.setStyleSheet("border: 0px solid black")
 
-    def change_text(self, a0):
-
-        self.__label.setText(a0)
-
-    def closeEvent(self, a0: QCloseEvent) -> None:
-        a0.accept()
+    @property
+    def debbugStatus(self):
+        return self.__debug
 
 
 app = QApplication(sys.argv)
