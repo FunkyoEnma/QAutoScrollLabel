@@ -211,9 +211,3 @@ class QAutoScrollLabel(ScrollLabel):
     @property
     def debbugStatus(self):
         return self.__debug
-
-
-# app = QApplication(sys.argv)
-# noti = QAutoScrollLabel()
-# noti.show()
-# app.exec()
