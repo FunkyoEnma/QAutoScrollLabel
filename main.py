@@ -1,5 +1,6 @@
 # importing libraries
 from time import sleep
+from multipledispatch import dispatch
 
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt6.QtWidgets import QScrollArea, QWidget, QLabel, QScrollBar, QHBoxLayout
@@ -177,10 +178,36 @@ class QAutoScrollLabel(ScrollLabel):
         # Start QTread
         self.__thread.start()
 
+    def setVelocity(self, a0: int):
+        """Set the velocity (Pixels Per Tick)"""
+        self.__worker.setVelocity(a0)
+
+    @dispatch(float)
+    def setTimeBetweenTicks(self, a0: float):
+        """Set the time in seconds (int o float) between Ticks"""
+        self.__worker.setTimeBetweenTicks(a0)
+
+    @dispatch(int)
+    def setTimeBetweenTicks(self, a0: int):
+        """Set the time in seconds (int o float) between Ticks"""
+        self.__worker.setTimeBetweenTicks(float(a0))
+
+    @property
+    def velocity(self):
+        return self.__worker.velocity
+
+    @property
+    def timeBetweenTicks(self):
+        return self.__worker.timeBetweenTicks
+
+    @property
+    def orientation(self):
+        return "RIGHT" if self.__worker.orientation == 1 else "LEFT"
+
     def __debugger(self):
         """Prints the debug Info"""
         if self.__debug:
-            print("Orientation:", "RIGHT" if self.__worker.orientation == 1 else "LEFT",
+            print("Orientation:", self.orientation,
                   f"Pos: {self.scrollbar.value()}Px",
                   f"Max: {self.scrollbar.maximum()}Px",
                   f"Vel: {self.__worker.velocity}Px/s",
@@ -209,5 +236,5 @@ class QAutoScrollLabel(ScrollLabel):
             self.setStyleSheet("border: 0px solid black")
 
     @property
-    def debbugStatus(self):
+    def debugStatus(self):
         return self.__debug
