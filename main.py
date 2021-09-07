@@ -1,9 +1,8 @@
 # importing libraries
-import sys
 from time import sleep
 
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
-from PyQt6.QtWidgets import QScrollArea, QWidget, QLabel, QScrollBar, QHBoxLayout, QApplication
+from PyQt6.QtWidgets import QScrollArea, QWidget, QLabel, QScrollBar, QHBoxLayout
 
 
 class ScrollLabel(QScrollArea):
@@ -214,7 +213,7 @@ class QAutoScrollLabel(ScrollLabel):
         return self.__debug
 
 
-app = QApplication(sys.argv)
-noti = QAutoScrollLabel()
-noti.show()
-app.exec()
+# app = QApplication(sys.argv)
+# noti = QAutoScrollLabel()
+# noti.show()
+# app.exec()
