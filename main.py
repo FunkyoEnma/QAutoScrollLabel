@@ -85,6 +85,7 @@ class QAutoScrollLabel(ScrollLabel):
 
         # Save parameter debug in a class variable
         self.__debug = debug
+        self.__debug_fun = self.__debugger
 
     class __Scroller(QObject):
         finished = pyqtSignal()
@@ -171,7 +172,6 @@ class QAutoScrollLabel(ScrollLabel):
         self.__worker.finished.connect(self.__thread.quit)
         self.__worker.finished.connect(self.__worker.deleteLater)
         self.__thread.finished.connect(self.__thread.deleteLater)
-        self.__worker.progress.connect(self.__debugger)
 
         # Connect Debugger Signal
         self.__worker.progress.connect(self.__debug_fun)
@@ -211,7 +211,7 @@ class QAutoScrollLabel(ScrollLabel):
             print("Orientation:", self.orientation,
                   f"Pos: {self.scrollbar.value()}Px",
                   f"Max: {self.scrollbar.maximum()}Px",
-                  f"Vel: {self.__worker.velocity}Px/s",
+                  f"Vel: {self.__worker.velocity}Px/t",
                   f"Time between ticks: {self.__worker.timeBetweenTicks}S",
                   f"Ticks Per Second: {1 / self.__worker.timeBetweenTicks} T/s")
 
