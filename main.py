@@ -1,4 +1,5 @@
 # importing libraries
+import typing
 from time import sleep
 from multipledispatch import dispatch
 
@@ -173,7 +174,7 @@ class QAutoScrollLabel(ScrollLabel):
         self.__worker.progress.connect(self.__debugger)
 
         # Connect Debugger Signal
-        self.__worker.progress.connect(self.__debugger)
+        self.__worker.progress.connect(self.__debug_fun)
 
         # Start QTread
         self.__thread.start()
@@ -234,6 +235,9 @@ class QAutoScrollLabel(ScrollLabel):
         else:
 
             self.setStyleSheet("border: 0px solid black")
+
+    def setDebug(self, debug_fun: typing.Callable):
+        self.__debug_fun = debug_fun
 
     @property
     def debugStatus(self):
