@@ -63,7 +63,7 @@ class ScrollLabel(QScrollArea):
 class QAutoScrollLabel(ScrollLabel):
 
     # noinspection PyShadowingNames
-    def __init__(self, debug: bool = False, parent: QWidget = None):
+    def __init__(self, parent: QWidget = None, debug: bool = False):
         """
         This Class creates a Widget that scrolls automatically if the text in the Label that the ScrollLabel class has
         inside it is wider than the Widget itself.
