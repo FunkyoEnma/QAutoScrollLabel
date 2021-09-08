@@ -8,6 +8,18 @@ This is a preview of the Widget with its default Text, The text in this widget m
 
 ![QAutoScrollLabel Preview](https://i.imgur.com/wAIoFRb.gif)
 
+## Package requirements
+This packege requieres a compatible verison of PyQt 6.1.1
+
+`pip install PyQt6~=6.1.1` 
+
+and a compatible version of multipledispatch 0.6.0
+
+`pip install multipledispatch~=0.6.0`
+
+## Download
+You can get the package whit the command `pip install QAutoScrollLabel`
+
 ## How to use
 
 ### Widget initialization
